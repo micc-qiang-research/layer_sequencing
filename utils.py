@@ -3,11 +3,14 @@ import numpy as np
 import math
 import pandas as pd
 import sys
+import logging
 
 MB = 10**6
 GB = 10**9
 
 result_path = "./__result__/"
+level = logging.INFO
+logging.basicConfig(level=level, format='%(levelname)s - %(message)s')
 
 # 设置全局可复现
 np.random.seed(0)
@@ -88,8 +91,8 @@ class SidneyDecomposition:
             roundNegativeCapacity=True  # True if negative arc capacities should be rounded to zero.
         )
 
-        print("breakpoints:", breakpoints) 
-        print("cuts:", cuts) 
+        logging.debug("breakpoints: {}".format(breakpoints)) 
+        logging.debug("cuts: {}".format(cuts)) 
 
         #### 分析结果
         idx = {i: np.min(np.nonzero(cuts[i]))  for i in cuts.keys() if i != source and i != sink}
@@ -105,7 +108,7 @@ class SidneyDecomposition:
         Y = []
         for i in sorted(res.keys(), reverse=True):
             Y.append(res[i])        
-        print("Y: ",  Y)
+        logging.debug("Y: {}".format(Y))
         return Y
 
 def acquire_data1():

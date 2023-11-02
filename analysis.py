@@ -17,7 +17,7 @@ class Analysis:
         self.simulator(seq)
 
     def simulator(self, seq):
-        if seq is None:
+        if seq == "FCFS":
             for i, k in enumerate(self.deploy):
                 image = self.requests[i]
                 self.tick[k] += self.servers[k].deploy_container(image)
@@ -29,7 +29,8 @@ class Analysis:
                 images[k].append(image)
 
             for k in range(self.K):
-                self.servers[k].deploy_container_by_glsa(images[k])
+                self.startup_latency.extend(\
+                    self.servers[k].deploy_container_by_glsa(images[k]))
 
 
     def get_startup_latency(self):

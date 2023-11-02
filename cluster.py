@@ -25,6 +25,10 @@ class Server:
         self.container_capacity_used = 0 # 已经使用的容器容量
         self.storage_capacity_used = 0 # 已经使用的存储容量
 
+    def get_icrement_layer_digest(self, image):
+        layers = set(self.data.get_image_layers_digest(image))
+        return layers - self.layers
+
     # 此server添加image后，增加的容器容量
     def get_icrement(self, image):
         layers = self.data.get_image_layers(image)
@@ -42,6 +46,8 @@ class Server:
         self.layers.update(layers)
         self.container_capacity_used += 1
         self.storage_capacity_used += L_inc
+        assert self.container_capacity_used <= self.container_capacity, "container_capacity_used > container_capacity"
+        assert self.storage_capacity_used <= self.storage_capacity, "storage_capacity_used > storage_capacity"
         return L_inc / self.bandwidth
 
     # 检测是否能部署此容器
@@ -51,6 +57,8 @@ class Server:
         return self.container_capacity - self.container_capacity_used >= 1 and \
             self.storage_capacity - self.storage_capacity_used >= L_inc
 
+    def get_time(self):
+        return self.storage_capacity_used / self.bandwidth
     
     # 添加一个job
     def add_job(self, is_container, data):
@@ -89,7 +97,39 @@ class Server:
         P = [lower_bound_p if p == 0 else p for p in P]
         return self.get_job_number(), dag, W, P
 
-    def deploy_container_by_glsa(self, images):
+    def glsa(self, images):
         n, dag, W, P = self.convert_to_pred_job_seq_problem(images)
         Y = SidneyDecomposition(n, dag, W, P).run()
-        print(Y)
+        startup_latency = []
+        L_seq = [] # Server拉取layer的序列,暂时没用到 TODO
+        for S in Y:
+            S_c = []
+            S_l_digest = []
+            for j in S:
+                job = self.get_job_by_index(j)
+                if job.is_container_job:
+                    S_c.append(job.data)
+                else:
+                    S_l_digest.append(job.data["digest"])
+
+            # 一个一个容器开始部署
+            c_min = None
+            layer_fetch = 0
+            while len(S_c) > 0:
+                for c in S_c:
+                    l_inc = self.get_icrement(c)
+                    l_inc_digest = self.get_icrement_layer_digest(c)
+                    assert l_inc_digest.issubset(S_l_digest), "l_inc_digest is not subset of S_l_digest"
+                    if c_min == None or l_inc < layer_fetch:
+                        c_min = c
+                        layer_fetch = l_inc
+                S_c.remove(c_min)
+                self.deploy_container(c_min, layer_fetch)
+                startup_latency.append(self.get_time())
+        
+        return startup_latency
+
+    def deploy_container_by_glsa(self, images):
+        if len(images) == 0:
+            return []
+        return self.glsa(images)
