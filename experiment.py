@@ -17,7 +17,7 @@ def exp_one(data, algo="LASA"):
     deployment = scheduler.schedule(requests)
 
     # 分析结果
-    analysis = Analysis(data, cluster,requests, deployment)
+    analysis = Analysis(data, cluster,requests, deployment, seq="GLSA")
     # analysis.show()
 
     return analysis.get_startup_latency()
