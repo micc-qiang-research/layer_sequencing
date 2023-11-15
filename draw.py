@@ -48,7 +48,8 @@ def draw_cdf(n, label, filename = "lat_cdf.csv"):
     plt.ylabel('CDF') 
     # plt.xlim(0,80000)
     plt.legend()
-    plt.show()
+    # plt.show()
+    plt.savefig("./lat_cdf.png")
 
 if __name__ == "__main__":
     draw_cdf(2, ["RS", "RS+UPL"], "lat_cdf.csv")

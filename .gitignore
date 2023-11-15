@@ -1,3 +1,5 @@
 __pycache__/
 __result__/
 storage/
+*.png
+!assets/**
