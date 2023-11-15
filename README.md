@@ -23,7 +23,7 @@ cp -r ./storage_demo ./storage
 python run.py
 
 ### 查看结果
-# 生成的图片在./lat_cdf.png
+# 生成的图片: ./lat_cdf.png
 
 ```
 
